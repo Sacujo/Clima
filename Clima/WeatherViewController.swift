@@ -8,14 +8,14 @@
 import UIKit
 import SnapKit
 
-class WeatherViewController: UIViewController {
+class WeatherViewController: UIViewController, UITextFieldDelegate {
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
         setupLayout()
-        
+        searchTextField.delegate = self
     }
     
     
@@ -39,7 +39,7 @@ class WeatherViewController: UIViewController {
         stack.spacing = 10
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.addArrangedSubview(locationButton)
-        stack.addArrangedSubview(serchField)
+        stack.addArrangedSubview(searchTextField)
         stack.addArrangedSubview(searchButton)
         return stack
     }()
@@ -52,7 +52,7 @@ class WeatherViewController: UIViewController {
         return button
     }()
     
-    lazy var serchField: UITextField = {
+    lazy var searchTextField: UITextField = {
         var textField = UITextField()
         textField.placeholder = "Search"
         textField.textAlignment = .right
@@ -63,7 +63,7 @@ class WeatherViewController: UIViewController {
         textField.contentMode = .scaleToFill
         textField.backgroundColor = .systemFill
         textField.translatesAutoresizingMaskIntoConstraints = false
-        
+        textField.returnKeyType = .go
         return textField
     }()
     
@@ -73,6 +73,7 @@ class WeatherViewController: UIViewController {
         button.tintColor = .label
         button.contentMode = .scaleToFill
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(searchButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -142,7 +143,35 @@ class WeatherViewController: UIViewController {
         var view = UIView()
         return view
     }()
+    
+    
+    @objc func searchButtonTapped(sender: UIButton) {
+        print(searchTextField.text!)
+        searchTextField.endEditing(true)
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        print(searchTextField.text!)
+        searchTextField.endEditing(true)
+        return true
+    }
+    
+    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        if searchTextField.text != "" {
+            return true
+        } else {
+            searchTextField.placeholder = "Type Something"
+            return false
+        }
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        // use searchTextField.text to search the weather in this city
+        searchTextField.text = ""
+    }
 }
+
+
 
 
 extension WeatherViewController {

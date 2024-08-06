@@ -8,8 +8,11 @@
 import UIKit
 import SnapKit
 
+let API_KEY = "2824da4b3326dd9fa64ec86f70988e13"
+
 class WeatherViewController: UIViewController, UITextFieldDelegate {
     
+    var weatherManager = WeatherManager()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -166,7 +169,9 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
     }
     
     func textFieldDidEndEditing(_ textField: UITextField) {
-        // use searchTextField.text to search the weather in this city
+        if let city = searchTextField.text {
+            weatherManager.fetchWeather(cityName: city)
+        }
         searchTextField.text = ""
     }
 }

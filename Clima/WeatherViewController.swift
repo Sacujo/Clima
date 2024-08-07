@@ -149,12 +149,10 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
     
     
     @objc func searchButtonTapped(sender: UIButton) {
-        print(searchTextField.text!)
         searchTextField.endEditing(true)
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        print(searchTextField.text!)
         searchTextField.endEditing(true)
         return true
     }

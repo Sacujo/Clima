@@ -7,18 +7,25 @@
 
 import UIKit
 import SnapKit
+import CoreLocation
 
 let API_KEY = "2824da4b3326dd9fa64ec86f70988e13"
 
-class WeatherViewController: UIViewController, UITextFieldDelegate {
+class WeatherViewController: UIViewController {
     
     var weatherManager = WeatherManager()
+    let locationManager = CLLocationManager()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        locationManager.delegate = self
+        searchTextField.delegate = self
+        weatherManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.requestLocation()
+        
         setupView()
         setupLayout()
-        searchTextField.delegate = self
     }
     
     
@@ -52,6 +59,7 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
         button.setBackgroundImage(UIImage(systemName: "location.circle.fill"), for: .normal)
         button.tintColor = .label
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(locationButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -146,37 +154,7 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
         var view = UIView()
         return view
     }()
-    
-    
-    @objc func searchButtonTapped(sender: UIButton) {
-        searchTextField.endEditing(true)
-    }
-    
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        searchTextField.endEditing(true)
-        return true
-    }
-    
-    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
-        if searchTextField.text != "" {
-            return true
-        } else {
-            searchTextField.placeholder = "Type Something"
-            return false
-        }
-    }
-    
-    func textFieldDidEndEditing(_ textField: UITextField) {
-        if let city = searchTextField.text {
-            weatherManager.fetchWeather(cityName: city)
-        }
-        searchTextField.text = ""
-    }
 }
-
-
-
-
 extension WeatherViewController {
     func setupView() {
         view.addSubview(backgroundImage)
@@ -222,5 +200,69 @@ extension WeatherViewController {
     }
 }
 
+//MARK: UITextFieldDelegate
+extension WeatherViewController: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        searchTextField.endEditing(true)
+        return true
+    }
+    
+    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        if searchTextField.text != "" {
+            return true
+        } else {
+            searchTextField.placeholder = "Type Something"
+            return false
+        }
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if let city = searchTextField.text {
+            weatherManager.fetchWeather(cityName: city)
+        }
+        searchTextField.text = ""
+    }
+    
+    @objc func searchButtonTapped(sender: UIButton) {
+        searchTextField.endEditing(true)
+    }
+}
+//MARK: - WeatherManagerDelegate
+extension WeatherViewController: WeatherManagerDelegate {
+    func didUpdateWeather(_ weatherManager: WeatherManager, weather: WeatherModel) {
+        DispatchQueue.main.async {
+            self.tempCountLabel.text = weather.temperatureString
+            self.conditionImage.image = UIImage(systemName: weather.conditionName)
+            self.cityLabel.text = weather.cityName
+        }
+    }
+    
+    func didFailWithError(error: Error) {
+        print(error)
+    }
+}
+
+
+//MARK: - SLLocationManagerDelegate
+extension WeatherViewController: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.last {
+            locationManager.stopUpdatingLocation()
+            let lat = location.coordinate.latitude
+            let lon = location.coordinate.longitude
+            weatherManager.fetchWeather(latitude: lat, longitude: lon)
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: any Error) {
+        print(error)
+    }
+    
+    @objc func locationButtonTapped(sender: UIButton) {
+        locationManager.requestLocation()
+    }
+}
+                                        
+                                        
 #Preview{WeatherViewController()}
 
